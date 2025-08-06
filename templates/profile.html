@@ -80,7 +80,7 @@
                 <div class="row">
                     <div class="col-md-6">
                         <p><strong>Role:</strong> {{ user.role.title() }}</p>
-                        <p><strong>Member Since:</strong> {{ user.created_at.strftime('%B %d, %Y') if user.created_at else 'N/A' }}</p>
+                        <p><strong>Member Since:</strong> {{ user.created_at[:10] if user.created_at else 'N/A' }}</p>
                     </div>
                     <div class="col-md-6">
                         <p><strong>Account Status:</strong> <span class="badge bg-success">Active</span></p>

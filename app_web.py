@@ -2217,13 +2217,57 @@ def web_logout():
     flash('You have been logged out successfully.', 'info')
     return redirect(url_for('web_home'))
 
-@app.route('/profile')
+@app.route('/profile', methods=['GET', 'POST'])
 @login_required
 def web_profile():
     """User profile page"""
     conn = get_db()
-    user = conn.execute('SELECT * FROM users WHERE id = ?', (session['user_id'],)).fetchone()
+    
+    if request.method == 'POST':
+        # Handle profile update
+        first_name = request.form.get('first_name')
+        last_name = request.form.get('last_name')
+        organization_name = request.form.get('organization_name')
+        current_password = request.form.get('current_password')
+        new_password = request.form.get('new_password')
+        
+        try:
+            # Update basic profile info
+            conn.execute('''
+                UPDATE users 
+                SET first_name = ?, last_name = ?, organization_name = ?
+                WHERE id = ?
+            ''', (first_name, last_name, organization_name, session['user_id']))
+            
+            # Handle password change if provided
+            if current_password and new_password:
+                user = conn.execute('SELECT password_hash FROM users WHERE id = ?', (session['user_id'],)).fetchone()
+                if user and check_password_hash(user['password_hash'], current_password):
+                    new_hash = generate_password_hash(new_password)
+                    conn.execute('UPDATE users SET password_hash = ? WHERE id = ?', (new_hash, session['user_id']))
+                    flash('Profile and password updated successfully!', 'success')
+                else:
+                    flash('Current password is incorrect.', 'error')
+                    conn.close()
+                    return redirect(url_for('web_profile'))
+            else:
+                flash('Profile updated successfully!', 'success')
+            
+            conn.commit()
+            conn.close()
+            return redirect(url_for('web_profile'))
+            
+        except Exception as e:
+            conn.close()
+            flash('Error updating profile. Please try again.', 'error')
+            return redirect(url_for('web_profile'))
+    
+    # GET request - show profile
+    user_data = conn.execute('SELECT * FROM users WHERE id = ?', (session['user_id'],)).fetchone()
     conn.close()
+    
+    # Convert user data to dict for template
+    user = dict(user_data) if user_data else {}
     
     return render_template('profile.html', user=user)
 
