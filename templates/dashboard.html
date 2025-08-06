@@ -44,7 +44,9 @@
     </div>
 
     <div class="row">
-        <!-- Quick Actions -->
+        
+          <!-- Quick Actions -->
+
         <div class="col-lg-4">
             <div class="card">
                 <div class="card-header">
@@ -140,7 +142,7 @@
                                         {% endif %}
                                     </td>
                                     <td>
-                                        <a href="{{ url_for('web_questionnaire', app_id=app.id) }}" class="btn btn-sm btn-outline-primary">
+                                        <a href="{{ url_for('web_security_assessment', app_id=app.id) }}" class="btn btn-sm btn-outline-primary">
                                             <i class="fas fa-clipboard-check"></i> Review
                                         </a>
                                     </td>

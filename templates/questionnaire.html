@@ -73,7 +73,8 @@
 
             <!-- Questionnaire Form -->
             <form method="POST" enctype="multipart/form-data" id="questionnaireForm" action="{{ url_for('submit_questionnaire', app_id=application.id) }}">
-                <!-- Hidden field for disabled categories -->
+                <!-- Hidden fields -->
+                <input type="hidden" name="field_type" value="{{ field }}">
                 <input type="hidden" name="disabled_categories" id="disabled_categories" value="">
                 
                 <div class="card shadow-sm">
@@ -127,14 +128,29 @@
 
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    const questionnaireData = JSON.parse(document.getElementById('questionnaire-data').textContent);
-    const existingResponses = JSON.parse(document.getElementById('existing-responses').textContent);
-    const existingComments = JSON.parse(document.getElementById('existing-comments').textContent);
-    const existingScreenshots = JSON.parse(document.getElementById('existing-screenshots').textContent);
-    const savedSection = JSON.parse(document.getElementById('saved-section').textContent);
+    try {
+        const questionnaireData = JSON.parse(document.getElementById('questionnaire-data').textContent);
+        const existingResponses = JSON.parse(document.getElementById('existing-responses').textContent);
+        const existingComments = JSON.parse(document.getElementById('existing-comments').textContent);
+        const existingScreenshots = JSON.parse(document.getElementById('existing-screenshots').textContent);
+        const savedSection = JSON.parse(document.getElementById('saved-section').textContent);
 
-    const sections = Object.keys(questionnaireData);
-    let currentSection = savedSection || 0; // Start from saved section or 0
+        const sections = Object.keys(questionnaireData);
+        
+        // DEBUG: Check if data is loaded correctly
+        console.log('✅ Questionnaire loaded. Sections:', sections.length);
+        
+        if (sections.length === 0) {
+            console.error('❌ No sections found in questionnaire data!', questionnaireData);
+            document.getElementById('section-container').innerHTML = '<div class="alert alert-danger">Error: No questionnaire sections found!</div>';
+            return;
+        }
+    // Ensure saved section is within bounds for current questionnaire
+    let currentSection = 0;
+    if (savedSection && savedSection < sections.length) {
+        currentSection = savedSection;
+    }
+    console.log(`📍 Starting from section ${currentSection} of ${sections.length}`);
     let autoSaveTimeout;
     
     // Auto-save function
@@ -254,6 +270,8 @@ document.addEventListener('DOMContentLoaded', function() {
     function renderSection(sectionIndex) {
         const sectionKey = sections[sectionIndex];
         const section = questionnaireData[sectionKey];
+        
+
         
         // Check if category is enabled (default: true)
         const categoryEnabled = localStorage.getItem(`category_${sectionKey}`) !== 'false';
@@ -600,6 +618,11 @@ document.addEventListener('DOMContentLoaded', function() {
     updateButtons();
     updateProgressBasedOnAnswers();
     updateDisabledCategories();
+    
+    } catch (error) {
+        console.error('❌ JavaScript Error in questionnaire:', error);
+        document.getElementById('section-container').innerHTML = '<div class="alert alert-danger">Error loading questionnaire: ' + error.message + '</div>';
+    }
 });
 </script>
 
